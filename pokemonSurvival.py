@@ -13,11 +13,10 @@ def clean_windows_terminal():
 
 def get_3_pokemons(pokemon_list):
 	pokemons = []
-	pokemons_to_use = copy.deepcopy(pokemon_list)
 	for a in range(3):
-		pokemon_to_add = random.choice(pokemons_to_use)
+		pokemon_to_add = random.choice(pokemon_list)
 		if pokemon_to_add not in pokemons:
-			pokemons.append(pokemon_to_add)
+			pokemons.append(copy.deepcopy(pokemon_to_add))
 	return pokemons
 
 
@@ -212,7 +211,6 @@ def inspect_my_pokemons(player_profile, enemy_pokemon, pokemon_in_combat, pokemo
 	show_pokemons(player_profile)
 
 	while True:
-
 		decision = input("Deseas intercambiar a tu pokemon actual por otro? (S/N)\n")
 		if decision.upper()  in ["S" , "N"]:
 			break
@@ -229,15 +227,12 @@ def inspect_my_pokemons(player_profile, enemy_pokemon, pokemon_in_combat, pokemo
 		show_pokemons(player_profile)
 
 		while True:
-
 			try:
 				selected_option = int(input("Seleccione un numero para indicar el pokemon elegido"))
 				if 0 < selected_option <= len(player_profile["pokemon_inventory"]):
 					return player_profile["pokemon_inventory"][selected_option - 1], None
 
-
 			except ValueError:
-
 				print("por favor intentalo nuevamente con un numero valido")
 
 
