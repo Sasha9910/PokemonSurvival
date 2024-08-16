@@ -1,18 +1,11 @@
+
+
 import pickle
-import re
 from requests_html import HTMLSession
+from srtFilesForPokeLoads import *
 
 
 
-URL_BASE = "https://www.pokexperto.net/index2.php?seccion=nds/nationaldex/pkmn&pk="
-URL_ATTACK_PAGE = "https://www.pokexperto.net/index2.php?seccion=nds/nationaldex/movimientos_nivel&pk="
-SRC_PREFIX_FOR_TYPE = "3ds/sprites/tipos/"
-HREF_PREFIX_FOR_EVOLUTION = "?seccion=nds/nationaldex/pkmn&pk="
-SPECIFIC_CLASS_FOR_EVOLUTION = "center"
-SPECIFIC_SRT_TO_DETECT_LVL_TO_EVOLVE = "Nivel"
-PROHIBITED_WORDS_INTO_SRT_LVL_TO_EVOLVE= ["por","Por"]
-WEAKNESSES_PAGE = "https://www.pokexperto.net/index2.php?seccion=nds/nationaldex/estrategia&pk="
-SRC_PREFIX_FOR_WEAKNESSES = "3ds/sprites/tipos/"
 
 
 name_lvl_list = [(0,0)]
@@ -156,8 +149,8 @@ def get_attacks_elements(URL_ATTACKS ,index):
     for attacks_elements in pokemon_page.html.find(".pkmain")[-1].find("tr.check3"):
         attack = {
             "name": attacks_elements.find("td", first=True).find("a", first=True ).text,
-            "type": attacks_elements.find("td")[1].find("img", first = True).attrs["alt"],
-            "min_level": attacks_elements.find("th", first=True).text,
+            "type": attacks_elements.find("td")[1].find("img", first = True).attrs["alt"] ,
+            "min_level": attacks_elements.find("th", first=True).text.replace(" ", "1"),
             "damage": int(attacks_elements.find("td")[3].text.replace("--", "0"))
 
         }
@@ -176,28 +169,6 @@ def assign_lvl_to_pokemon(actual_exp, exp_needed ,index):
         return actual_exp,next_pokemon_lvl
     else:
         return actual_exp, exp_needed
-
-
-
-def get_pokemon_weaknesses(weaknesses_url, index, SRC_PREFIX_FOR_WEAKNESSES):
-    url = "{}{}".format(weaknesses_url, index)
-    session = HTMLSession()
-    weaknesses_page = session.get(url)
-    weaknesses = []
-    pattern = r"sprites/tipos/([a-zA-Z0-9_-]+)-v\.png"
-    select_pkmain = weaknesses_page.html.find(".pkmain")[5]
-    select_tr = select_pkmain.find("tr")[1].find("tr")[0]
-    imgs = select_tr.find("img")
-    for img in imgs:
-        img_src = img.attrs.get('src', "")
-        if img_src.startswith(SRC_PREFIX_FOR_WEAKNESSES):
-            match = re.search(pattern, img_src)
-            if match:
-                variable_part = match.group(1)
-                return weaknesses.append(variable_part)
-
-
-
 
 
 def get_pokemon(index, name_lvl_list, name_lvl_tuple):
@@ -230,12 +201,18 @@ def get_pokemon(index, name_lvl_list, name_lvl_tuple):
 
 
     new_pokemon["attacks"] = (get_attacks_elements(URL_ATTACK_PAGE, index))
-    new_pokemon["weaknesses"] = (get_pokemon_weaknesses(WEAKNESSES_PAGE, index, SRC_PREFIX_FOR_WEAKNESSES))
+    if new_pokemon["level"] > 1:
+        new_pokemon["base_health"] = 100 + (5 * new_pokemon["level"] )
+    new_pokemon["current_health"] = new_pokemon["base_health"]
+
     return new_pokemon
+
+
 def get_all_pokemons():
 
 
     all_pokemons = []
+
 
     try:
         print("Cargando archivo de pokemons")
@@ -255,6 +232,9 @@ def get_all_pokemons():
             print("\n !Todos los pokemons han sido descargados!\n")
 
     return all_pokemons
+
+
+
 
 
 
